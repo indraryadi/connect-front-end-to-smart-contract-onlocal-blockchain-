@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Hello</h1><br>
+        wallet address: <h5 id="wallet-address"></h5><br>
+        balance: <h5 id="wallet-balance"></h5><br>
+    </div>
+    <div class="blockchain">
+        owner address:<h5 id="owner"></h5><br>
+        text:<h5 id="textRaw"></h5><br>
+        number:<h5 id="number"></h5><br>
+    </div>
+
+    <input type="text" id="text-raw" placeholder="input text">
+    <button onclick="setText()">set text</button><br><br>
+    <button onclick="inc()">increment</button>
+    <br><br>
+    <button onclick="load()">load</button>
+ 
+    <br>
+    <br>
+    <br>
+    <button onclick="connect()" id="btn-connect">Connect Wallet</button>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+    type="application/javascript"></script>
+    <script src="abi.js"></script>
+    <script>
+        let smContract
+        let provider
+        async function connect(){
+            await ethereum.request({method:'eth_requestAccounts'});
+            provider= new ethers.providers.Web3Provider(window.ethereum) 
+            
+            const account= await provider.getSigner().getAddress() //get address of wallet
+            const balance= await provider.getSigner().getBalance() //get balance of wallet
+            smContract=new ethers.Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3",abi,provider)
+            //how to get sm contract address manualy?
+            document.getElementById("wallet-address").innerText=account
+            document.getElementById("wallet-balance").innerText=balance+" ETH"
+            document.getElementById("btn-connect").innerText="connected"
+            await load()
+            
+        }
+        async function load(){
+            console.log('load')
+            document.getElementById("owner").innerText=await smContract.getOwner()
+            document.getElementById("textRaw").innerText=await smContract.textRaw()
+            document.getElementById("number").innerText=await smContract.number()
+        }
+        
+        async function setText(){
+            console.log('setT')
+            const textVal=document.getElementById("text-raw").value
+            const smc=await smContract.connect(await provider.getSigner())
+            await smc.setText(textVal)
+            await load()
+        }
+        async function inc(){
+            console.log('inc')
+            const smc=await smContract.connect(await provider.getSigner())
+            await smc.inc()
+            await load()
+        }
+        </script>
+</body>
+</html>
